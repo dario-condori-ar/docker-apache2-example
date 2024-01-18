@@ -1,0 +1,44 @@
+pipeline{
+    agent any
+    parameters{
+        string(name:'name_container', defaultValue: 'proyecto-qa', description: 'nombre del docker')
+        string(name:'name_image', defaultValue: 'image-proyecto-qa', description: 'nombre del la imagen')
+        string(name:'tag_image', defaultValue: 'pre', description: 'etiqueta de la imagen')
+        string(name:'port_image', defaultValue: '81', description: 'puerto a publicar')
+    }
+    environment{
+        name_final = "${name_container}${tag_image}${port_image}"
+    }
+    stages{
+        stage('stop/rm'){
+            when{
+                expresion{
+                    DOCKER_EXIST = sh(returnStdout: true, script: 'echo "$(docker ps -q --filter name=${name_final})"')
+                    return DOCKER_EXIST != ''                }
+            }
+            steps{
+                script{
+                    sh docker stop ${name_final}
+                }
+            }
+        }
+
+        stage ('build'){
+            steps{
+                script{
+                    sh docker build . -t ${name_image}:${tag_image}
+                }
+
+            }
+        }
+
+        stage ('run'){
+            steps{
+                script{
+                    sh docker run -dp ${port_image}:80 --name ${name_final} ${name_image}:${tag_image}
+                }
+            }
+        }
+    }
+
+}
