@@ -30,7 +30,7 @@ pipeline{
             steps{
                 script{
                     sh ''' 
-                    docker build . -t ${name_image}:${tag_image}
+                    docker build apache/ -t ${name_image}:${tag_image}
                     '''                     
                 }
 
