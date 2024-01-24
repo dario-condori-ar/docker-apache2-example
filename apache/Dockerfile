@@ -1,15 +1,19 @@
-FROM debian
 
-RUN apt-get update && apt-get install -y apache2 && apt-get clean && rm -rf /var/lib/apt/lists/*
+FROM php:7.1.17-apache
+LABEL maintainer="Daro"
 
-ENV APACHE_RUN_USER www-data
-ENV APACHE_RUN_GROUP www-data
-ENV APACHE_LOG_DIR /var/log/apache2
+RUN a2enmod rewrite
 
-EXPOSE 80
-ADD ["index.html","/var/www/html/"]
+RUN apt-get update && apt-get install -y \
+        zlib1g-dev \
+        libicu-dev \
+        libxml2-dev \
+        libpq-dev\
+	
+        && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+        && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl xmlrpc soap opcache \
+        && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
+        && apt-get install vim -y
 
-ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
-
-## ~/apache$ docker build -t condorid2024/apache2:1.0 .
-## docker run -p 80:80 --name servidor_web condorid2024/apache2:1.0
+COPY  . /var/www/html/
+WORKDIR /var/www/html/
