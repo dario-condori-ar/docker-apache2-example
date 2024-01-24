@@ -1,18 +1,16 @@
+FROM php:7.3-apache-stretch
+LABEL maintainer="plugins@omv-extras.org"
 
-FROM php:7.1.17-apache
-LABEL maintainer="Daro"
 
-RUN a2enmod rewrite
-
-RUN apt-get update
-RUN apt-get install -y zlib1g-dev
-RUN apt-get install -y libicu-dev 
-RUN apt-get install -y libxml2-dev
-RUN apt-get install -y libpq-dev
-RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl xmlrpc soap opcache \
-RUN docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
-RUN apt-get install vim -y
+RUN apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  libc6 libstdc++6 libkrb5-3 libcurl3 openssl debconf \
+  libfreetype6-dev libjpeg-dev libpng-dev \
+  && docker-php-ext-install mysqli pdo_mysql \
+  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+  && docker-php-ext-install gd \
+  && apt-get clean \
+  && rm -r /var/lib/apt/lists/*
 
 COPY  . /var/www/html/
 WORKDIR /var/www/html/
